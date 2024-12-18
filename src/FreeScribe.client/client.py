@@ -595,6 +595,7 @@ def send_audio_to_server():
             print(f"An error occurred: {e}")
         finally:
             GENERATION_THREAD_ID = None
+            clear_application_press()
 
     loading_window = LoadingWindow(root, "Processing Audio", "Processing Audio. Please wait.", on_cancel=lambda: (cancel_processing(), cancel_whole_audio_process(current_thread_id)))
 
@@ -1280,11 +1281,17 @@ def _load_stt_model_thread():
         device_type = get_selected_whisper_architecture()
         set_cuda_paths()
 
+        compute_type = app_settings.editable_settings[SettingsKeys.WHISPER_COMPUTE_TYPE.value]
+        # Change the  compute type automatically if using a gpu one.
+        if device_type == Architectures.CPU.architecture_value and compute_type == "float16":
+            compute_type = "int8"
+            
+
         stt_local_model = WhisperModel(
             model, 
             device=device_type,
             cpu_threads=int(app_settings.editable_settings[SettingsKeys.WHISPER_CPU_COUNT.value]),
-            compute_type=app_settings.editable_settings[SettingsKeys.WHISPER_COMPUTE_TYPE.value],)
+            compute_type=compute_type)
 
         print("STT model loaded successfully.")
     except Exception as e:
@@ -1364,7 +1371,7 @@ def faster_whisper_transcribe(audio):
     except Exception as e:
         error_message = f"Transcription failed: {str(e)}"
         print(f"Error during transcription: {str(e)}")
-        raise TranscribeError(error_message)
+        raise TranscribeError(error_message) from e
 
 def set_cuda_paths():
     """
