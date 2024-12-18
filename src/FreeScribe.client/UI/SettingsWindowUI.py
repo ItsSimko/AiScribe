@@ -28,7 +28,7 @@ from Model import Model, ModelManager
 from utils.file_utils import get_file_path
 from UI.MarkdownWindow import MarkdownWindow
 from UI.Widgets.MicrophoneSelector import MicrophoneSelector
-from UI.SettingsWindow import SettingsKeys, FeatureToggle, Architectures
+from UI.SettingsWindow import SettingsKeys, FeatureToggle, Architectures, SettingsWindow
 
 
 class SettingsWindowUI:
@@ -81,11 +81,13 @@ class SettingsWindowUI:
         """
         self.settings_window = tk.Toplevel()
         self.settings_window.title("Settings")
-        self.settings_window.geometry("700x400")  # Set initial window size
-        self.settings_window.minsize(700, 400)    # Set minimum window size
+        self.settings_window.geometry("775x400")  # Set initial window size
+        self.settings_window.minsize(775, 400)    # Set minimum window size
         self.settings_window.resizable(True, True)
         self.settings_window.grab_set()
         self.settings_window.iconbitmap(get_file_path('assets','logo.ico'))
+
+        self._display_center_to_parent()
 
         self.main_frame = tk.Frame(self.settings_window)
         self.main_frame.pack(expand=True, fill='both')
@@ -123,6 +125,21 @@ class SettingsWindowUI:
         
         self.create_buttons()
 
+    def _display_center_to_parent(self):
+        # Get parent window dimensions and position
+        parent_x = self.root.winfo_x()
+        parent_y = self.root.winfo_y()
+        parent_width = self.root.winfo_width()
+        parent_height = self.root.winfo_height()
+
+        # Calculate the position for the settings window
+        settings_width = 775
+        settings_height = 400
+        center_x = parent_x + (parent_width - settings_width) // 2
+        center_y = parent_y + (parent_height - settings_height) // 2
+
+        # Apply the calculated position to the settings window
+        self.settings_window.geometry(f"{settings_width}x{settings_height}+{center_x}+{center_y}")
 
     def add_scrollbar_to_frame(self, frame):
         """
@@ -208,7 +225,7 @@ class SettingsWindowUI:
             self.whisper_architecture_dropdown.current(whisper_architecture_options.index(self.settings.editable_settings[SettingsKeys.WHISPER_ARCHITECTURE.value]))
         else:
             # Default cpu
-            self.whisper_architecture_dropdown.set("CPU")
+            self.whisper_architecture_dropdown.set(SettingsWindow.DEFAULT_WHISPER_ARCHITECTURE)
         
         self.whisper_architecture_dropdown.grid(row=left_row, column=1, padx=0, pady=5, sticky="w")
         self.settings.editable_settings_entries[SettingsKeys.WHISPER_ARCHITECTURE.value] = self.whisper_architecture_dropdown
